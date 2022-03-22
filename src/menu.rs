@@ -1,10 +1,14 @@
-use crate::key;
+use crate::menu_item::MenuItem;
 use cocoa::{
-  appkit::{NSApp, NSApplication, NSMenu, NSMenuItem},
+  appkit::{NSApp, NSApplication, NSMenu},
   base::{id, nil, NO},
   foundation::{NSAutoreleasePool, NSString},
 };
 use objc::{msg_send, sel, sel_impl};
+use std::{
+  collections::hash_map::DefaultHasher,
+  hash::{Hash, Hasher},
+};
 
 pub fn set_menu(menu: &Menu) {
   unsafe {
@@ -34,7 +38,7 @@ impl Menu {
   pub fn add_submenu(&self, submenu: &Menu, title: &str) {
     submenu.set_title(title);
 
-    let menu_item = MenuItem::new(title, None);
+    let menu_item = MenuItem::new(title, None, None);
     menu_item.add_submenu(&submenu);
 
     self.add_item(&menu_item);
@@ -47,34 +51,36 @@ impl Menu {
   }
 }
 
-#[derive(Debug, Clone)]
-pub struct MenuItem {
-  pub ns_menu_item: id,
+/// Identifier of a custom menu item.
+///
+/// Whenever you receive an event arising from a particular menu, this event contains a `MenuId` which
+/// identifies its origin.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct MenuId(pub u16);
+
+impl From<MenuId> for u16 {
+  fn from(s: MenuId) -> u16 {
+    s.0
+  }
 }
 
-impl MenuItem {
-  pub fn new(title: &str, key_equivalent: Option<key::KeyEquivalent>) -> Self {
-    unsafe {
-      let _title = NSString::alloc(nil).init_str(title);
-      let sel = sel!(fireMenubarAction:);
-      let (key, masks) = match key_equivalent {
-        Some(ke) => (NSString::alloc(nil).init_str(ke.key), ke.masks),
-        None => (NSString::alloc(nil).init_str(""), None),
-      };
+impl MenuId {
+  /// Return an empty `MenuId`.
+  pub const EMPTY: MenuId = MenuId(0);
 
-      let ns_menu_item =
-        NSMenuItem::alloc(nil).initWithTitle_action_keyEquivalent_(_title, sel, key);
-
-      if let Some(masks) = masks {
-        ns_menu_item.setKeyEquivalentModifierMask_(masks)
-      }
-
-      Self { ns_menu_item }
-    }
+  /// Create new `MenuId` from a String.
+  pub fn new(unique_string: &str) -> MenuId {
+    MenuId(hash_string_to_u16(unique_string))
   }
-  pub fn add_submenu(&self, submenu: &Menu) {
-    unsafe {
-      self.ns_menu_item.setSubmenu_(submenu.ns_menu);
-    }
+
+  /// Whenever this menu is empty.
+  pub fn is_empty(self) -> bool {
+    Self::EMPTY == self
   }
+}
+
+fn hash_string_to_u16(title: &str) -> u16 {
+  let mut s = DefaultHasher::new();
+  title.to_uppercase().hash(&mut s);
+  s.finish() as u16
 }

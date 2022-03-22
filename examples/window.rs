@@ -4,7 +4,11 @@ use winit::{
   window::WindowBuilder,
 };
 
-use winit_menu_macos::menu::{set_menu, Menu, MenuItem};
+use winit_menu_macos::{
+  event_channel::get_event_channel,
+  menu::{set_menu, Menu},
+  menu_item::MenuItem,
+};
 
 fn main() {
   let event_loop = EventLoop::new();
@@ -21,9 +25,9 @@ fn main() {
   /* application menu */
   let app_menu: Menu = Menu::new();
 
-  let app_menu_item_1: MenuItem = MenuItem::new("AppMenu Item 1", None);
-  let app_menu_item_2: MenuItem = MenuItem::new("AppMenu Item 2", None);
-  let app_menu_item_3: MenuItem = MenuItem::new("AppMenu Item 3", None);
+  let app_menu_item_1: MenuItem = MenuItem::new("AppMenu Item 1", None, None);
+  let app_menu_item_2: MenuItem = MenuItem::new("AppMenu Item 2", None, None);
+  let app_menu_item_3: MenuItem = MenuItem::new("AppMenu Item 3", None, None);
 
   app_menu.add_item(&app_menu_item_1);
   app_menu.add_item(&app_menu_item_2);
@@ -34,10 +38,10 @@ fn main() {
   /* first menu */
   let first_menu: Menu = Menu::new();
 
-  let first_menu_item_a = MenuItem::new("Menu Item A", None);
-  let first_menu_item_b = MenuItem::new("Menu Item B", None);
-  let first_menu_item_c = MenuItem::new("Menu Item C", None);
-  let first_menu_item_d = MenuItem::new("Menu Item D", None);
+  let first_menu_item_a = MenuItem::new("Menu Item A", None, None);
+  let first_menu_item_b = MenuItem::new("Menu Item B", None, None);
+  let first_menu_item_c = MenuItem::new("Menu Item C", None, None);
+  let first_menu_item_d = MenuItem::new("Menu Item D", None, None);
 
   first_menu.add_item(&first_menu_item_a);
   first_menu.add_item(&first_menu_item_b);
@@ -48,6 +52,14 @@ fn main() {
 
   event_loop.run(move |event, _, control_flow| {
     *control_flow = ControlFlow::Wait;
+
+    let channel = get_event_channel();
+    let rx_ref = channel.1.lock().unwrap();
+
+    /* recv menu events */
+    while let Ok(data) = rx_ref.try_recv() {
+      println!("{:?}", data);
+    }
 
     match event {
       Event::WindowEvent {
