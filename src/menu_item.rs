@@ -18,10 +18,7 @@ use objc::{
 };
 use std::sync::Once;
 
-static BLOCK_PTR: &str = "MenuItemBlockPtr";
-
-#[derive(Debug)]
-struct Action(Box<u16>);
+static MENU_IDENTITY: &str = "MenuItemIdentity";
 
 #[derive(Debug, Clone)]
 pub struct MenuItem {
@@ -36,11 +33,9 @@ impl MenuItem {
   ) -> Self {
     let alloc = make_menu_alloc();
     let menu_id = MenuId::new(title);
-    let id = Box::new(Action(Box::new(menu_id.0)));
-    let ptr = Box::into_raw(id);
 
     unsafe {
-      (&mut *alloc).set_ivar(BLOCK_PTR, ptr as usize);
+      (&mut *alloc).set_ivar(MENU_IDENTITY, menu_id.0);
       let _: () = msg_send![&*alloc, setTarget:&*alloc];
       let title = NSString::alloc(nil).init_str(title);
       Self {
@@ -66,7 +61,7 @@ fn make_menu_item_class() -> *const Class {
   INIT.call_once(|| unsafe {
     let superclass = class!(NSMenuItem);
     let mut decl = ClassDecl::new("MenuItem", superclass).unwrap();
-    decl.add_ivar::<usize>(BLOCK_PTR);
+    decl.add_ivar::<u16>(MENU_IDENTITY);
 
     decl.add_method(
       sel!(dealloc),
@@ -121,11 +116,6 @@ extern "C" fn fire_menu_bar_click(this: &Object, _: Sel, _item: id) {
 
 extern "C" fn dealloc_custom_menuitem(this: &Object, _: Sel) {
   unsafe {
-    let ptr: usize = *this.get_ivar(BLOCK_PTR);
-    let obj = ptr as *mut Action;
-    if !obj.is_null() {
-      let _handler = Box::from_raw(obj);
-    }
     let _: () = msg_send![super(this, class!(NSMenuItem)), dealloc];
   }
 }
@@ -135,9 +125,8 @@ fn send_event(this: &Object) {
   let tx = channel.0.clone();
 
   let menu_id = unsafe {
-    let ptr: usize = *this.get_ivar(BLOCK_PTR);
-    let obj = ptr as *const Action;
-    &*obj
+    let id: u16 = *this.get_ivar(MENU_IDENTITY);
+    id
   };
 
   let window_id = unsafe {
@@ -148,7 +137,7 @@ fn send_event(this: &Object) {
 
   let event = Event::MenuEvent {
     window_id,
-    menu_id: MenuId(*menu_id.0),
+    menu_id: MenuId(menu_id),
   };
 
   tx.send(event).unwrap();
