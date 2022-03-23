@@ -1,3 +1,4 @@
+use cocoa::appkit::NSEventModifierFlags;
 use winit::{
   event::{DeviceEvent, ElementState, Event, WindowEvent},
   event_loop::{ControlFlow, EventLoop},
@@ -6,6 +7,7 @@ use winit::{
 
 use winit_menu_macos::{
   event_channel::get_event_channel,
+  key::KeyEquivalent,
   menu::{set_menu, Menu},
   menu_item::MenuItem,
 };
@@ -38,7 +40,16 @@ fn main() {
   /* first menu */
   let first_menu: Menu = Menu::new();
 
-  let first_menu_item_a = MenuItem::new("Menu Item A", None, None);
+  let first_menu_item_a = MenuItem::new(
+    "Menu Item A",
+    None,
+    Some(KeyEquivalent {
+      key: "h",
+      masks: Some(
+        NSEventModifierFlags::NSAlternateKeyMask | NSEventModifierFlags::NSCommandKeyMask,
+      ),
+    }),
+  );
   let first_menu_item_b = MenuItem::new("Menu Item B", None, None);
   let first_menu_item_c = MenuItem::new("Menu Item C", None, None);
   let first_menu_item_d = MenuItem::new("Menu Item D", None, None);
