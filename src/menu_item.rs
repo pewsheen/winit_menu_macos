@@ -132,7 +132,7 @@ extern "C" fn dealloc_custom_menuitem(this: &Object, _: Sel) {
 
 fn send_event(this: &Object) {
   let channel = get_event_channel();
-  let tx = channel.0.lock().unwrap();
+  let tx = channel.0.clone();
 
   let menu_id = unsafe {
     let ptr: usize = *this.get_ivar(BLOCK_PTR);

@@ -54,7 +54,7 @@ fn main() {
     *control_flow = ControlFlow::Wait;
 
     let channel = get_event_channel();
-    let rx_ref = channel.1.lock().unwrap();
+    let rx_ref = channel.1.clone();
 
     /* recv menu events */
     while let Ok(data) = rx_ref.try_recv() {
