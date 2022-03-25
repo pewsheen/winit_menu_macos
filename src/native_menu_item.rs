@@ -42,7 +42,6 @@ pub fn make_native_menu_item(
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
     ),
-    _ => (None, nil),
   };
 
   menu_item
