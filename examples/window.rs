@@ -1,6 +1,6 @@
 use cocoa::appkit::NSEventModifierFlags;
 use winit::{
-  event::{DeviceEvent, ElementState, Event, WindowEvent},
+  event::{Event, WindowEvent},
   event_loop::{ControlFlow, EventLoop},
   window::WindowBuilder,
 };
@@ -84,6 +84,7 @@ fn main() {
     }
 
     match event {
+      Event::NewEvents(winit::event::StartCause::Init) => set_menu(&menu_bar),
       Event::WindowEvent {
         event: WindowEvent::CloseRequested,
         window_id,
@@ -91,15 +92,6 @@ fn main() {
       Event::MainEventsCleared => {
         window.request_redraw();
       }
-      Event::DeviceEvent { event, .. } => match event {
-        DeviceEvent::Button { button: _, state } => match state {
-          ElementState::Released => {
-            set_menu(&menu_bar);
-          }
-          _ => (),
-        },
-        _ => (),
-      },
       _ => (),
     }
   });
