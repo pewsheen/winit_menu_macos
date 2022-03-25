@@ -3,6 +3,7 @@ use crate::{
   event_channel::get_event_channel,
   key,
   menu::{Menu, MenuId},
+  native_menu_item::{make_native_menu_item, NativeMenuItem},
 };
 use cocoa::{
   appkit::{NSEventModifierFlags, NSMenuItem},
@@ -31,16 +32,22 @@ impl MenuItem {
     selector: Option<Sel>,
     key_equivalent: Option<key::KeyEquivalent>,
   ) -> Self {
-    let alloc = make_menu_alloc();
-    let menu_id = MenuId::new(title);
-
+    let (menu_id, menu_item) = make_menu_item(title, selector, key_equivalent);
     unsafe {
-      (&mut *alloc).set_ivar(MENU_IDENTITY, menu_id.0);
-      let _: () = msg_send![&*alloc, setTarget:&*alloc];
-      let title = NSString::alloc(nil).init_str(title);
-      Self {
-        ns_menu_item: make_menu_item_from_alloc(alloc, title, selector, key_equivalent),
-      }
+      (&mut *menu_item).set_ivar(MENU_IDENTITY, menu_id.unwrap().0);
+      let _: () = msg_send![&*menu_item, setTarget:&*menu_item];
+    }
+    Self {
+      ns_menu_item: menu_item,
+    }
+  }
+  pub fn new_native(
+    item: NativeMenuItem,
+    title: Option<&str>,
+    key_equivalent: Option<key::KeyEquivalent>,
+  ) -> Self {
+    Self {
+      ns_menu_item: make_native_menu_item(item, title, key_equivalent),
     }
   }
   pub fn add_submenu(&self, submenu: &Menu) {
@@ -50,7 +57,23 @@ impl MenuItem {
   }
 }
 
-fn make_menu_alloc() -> *mut Object {
+pub fn make_menu_item(
+  title: &str,
+  selector: Option<Sel>,
+  key_equivalent: Option<key::KeyEquivalent>,
+) -> (Option<MenuId>, *mut Object) {
+  let alloc = make_menu_item_alloc();
+  let menu_id = MenuId::new(title);
+
+  unsafe {
+    let title = NSString::alloc(nil).init_str(title);
+    let menu_item = make_menu_item_from_alloc(alloc, title, selector, key_equivalent);
+
+    (Some(menu_id), menu_item)
+  }
+}
+
+fn make_menu_item_alloc() -> *mut Object {
   unsafe { msg_send![make_menu_item_class(), alloc] }
 }
 

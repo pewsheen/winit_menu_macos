@@ -10,6 +10,7 @@ use winit_menu_macos::{
   key::KeyEquivalent,
   menu::{set_menu, Menu},
   menu_item::MenuItem,
+  native_menu_item::NativeMenuItem,
 };
 
 fn main() {
@@ -31,9 +32,19 @@ fn main() {
   let app_menu_item_2: MenuItem = MenuItem::new("AppMenu Item 2", None, None);
   let app_menu_item_3: MenuItem = MenuItem::new("AppMenu Item 3", None, None);
 
+  /* native menu items */
+  let about_menu_item =
+    MenuItem::new_native(NativeMenuItem::About("AppName".to_string()), None, None);
+  let sep: MenuItem = MenuItem::new_native(NativeMenuItem::Separator, None, None);
+  let close_menu_item: MenuItem =
+    MenuItem::new_native(NativeMenuItem::CloseWindow, Some("Bye"), None);
+
+  app_menu.add_item(&about_menu_item);
   app_menu.add_item(&app_menu_item_1);
   app_menu.add_item(&app_menu_item_2);
   app_menu.add_item(&app_menu_item_3);
+  app_menu.add_item(&sep);
+  app_menu.add_item(&close_menu_item);
 
   menu_bar.add_submenu(&app_menu, "Application");
 
