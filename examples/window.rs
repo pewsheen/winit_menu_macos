@@ -63,6 +63,8 @@ fn menu_bartender() -> Menu {
   /* native menu items */
   let about_menu_item =
     MenuItem::new_native(NativeMenuItem::About("AppName".to_string()), None, None);
+  let hide_others_menu_item: MenuItem =
+    MenuItem::new_native(NativeMenuItem::HideOthers, None, None);
   let sep: MenuItem = MenuItem::new_native(NativeMenuItem::Separator, None, None);
   let close_menu_item: MenuItem =
     MenuItem::new_native(NativeMenuItem::CloseWindow, Some("Bye"), None);
@@ -71,6 +73,7 @@ fn menu_bartender() -> Menu {
   app_menu.add_item(&app_menu_item_1);
   app_menu.add_item(&app_menu_item_2);
   app_menu.add_item(&app_menu_item_3);
+  app_menu.add_item(&hide_others_menu_item);
   app_menu.add_item(&sep);
   app_menu.add_item(&close_menu_item);
 
