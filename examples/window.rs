@@ -9,7 +9,6 @@ use winit_menu_macos::{
   event_channel::get_event_channel,
   key::KeyEquivalent,
   menu::{set_menu, Menu},
-  menu_item::MenuItem,
   native_menu_item::NativeMenuItem,
 };
 

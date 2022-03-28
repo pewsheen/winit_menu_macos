@@ -1,4 +1,8 @@
-use crate::{key, menu_item::MenuItem, native_menu_item::NativeMenuItem};
+use crate::{
+  key,
+  menu_item::{MenuItem, MenuType},
+  native_menu_item::NativeMenuItem,
+};
 use cocoa::{
   appkit::{NSApp, NSApplication, NSMenu},
   base::{id, nil, NO},
@@ -10,6 +14,10 @@ use std::{
   hash::{Hash, Hasher},
 };
 
+pub trait HasMenu {
+  fn ns_menu(&self) -> id;
+}
+
 pub fn set_menu(menu: &Menu) {
   unsafe {
     let app = NSApp();
@@ -20,6 +28,12 @@ pub fn set_menu(menu: &Menu) {
 #[derive(Debug, Clone)]
 pub struct Menu {
   pub ns_menu: id,
+}
+
+impl HasMenu for Menu {
+  fn ns_menu(&self) -> id {
+    self.ns_menu
+  }
 }
 
 impl Menu {
@@ -36,7 +50,7 @@ impl Menu {
     selector: Option<Sel>,
     key_equivalent: Option<key::KeyEquivalent>,
   ) {
-    let menu_item = MenuItem::new(title, selector, key_equivalent);
+    let menu_item = MenuItem::new(title, selector, key_equivalent, MenuType::MenuBar);
     unsafe {
       self.ns_menu.addItem_(menu_item.ns_menu_item);
     }
@@ -47,7 +61,7 @@ impl Menu {
     title: Option<&str>,
     key_equivalent: Option<key::KeyEquivalent>,
   ) {
-    let native_menu_item = MenuItem::new_native(item, title, key_equivalent);
+    let native_menu_item = MenuItem::new_native(item, title, key_equivalent, MenuType::MenuBar);
     unsafe {
       self.ns_menu.addItem_(native_menu_item.ns_menu_item);
     }
@@ -55,8 +69,8 @@ impl Menu {
   pub fn add_submenu(&self, submenu: &Menu, title: &str) {
     submenu.set_title(title);
 
-    let menu_item = MenuItem::new(title, None, None);
-    menu_item.add_submenu(&submenu);
+    let menu_item = MenuItem::new(title, None, None, MenuType::MenuBar);
+    menu_item.add_submenu(submenu);
 
     unsafe {
       self.ns_menu.addItem_(menu_item.ns_menu_item);

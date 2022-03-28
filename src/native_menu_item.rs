@@ -1,4 +1,7 @@
-use crate::{key, menu_item::make_menu_item};
+use crate::{
+  key,
+  menu_item::{make_menu_item, MenuType},
+};
 use cocoa::{
   appkit::{NSEventModifierFlags, NSMenuItem},
   base::{id, nil, selector},
@@ -36,6 +39,7 @@ pub fn make_native_menu_item(
   item: NativeMenuItem,
   title: Option<&str>,
   key_equivalent: Option<key::KeyEquivalent>,
+  menu_type: MenuType,
 ) -> *mut Object {
   let (_, menu_item) = match item {
     NativeMenuItem::Separator => unsafe { (None, NSMenuItem::separatorItem(nil)) },
@@ -45,6 +49,7 @@ pub fn make_native_menu_item(
         title.unwrap_or(_title.as_str()),
         Some(selector("orderFrontStandardAboutPanel:")),
         key_equivalent,
+        menu_type,
       )
     }
     NativeMenuItem::CloseWindow => make_menu_item(
@@ -54,6 +59,7 @@ pub fn make_native_menu_item(
         key: "w",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::Quit => make_menu_item(
       title.unwrap_or("Quit"),
@@ -62,6 +68,7 @@ pub fn make_native_menu_item(
         key: "q",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::Hide => make_menu_item(
       title.unwrap_or("Hide"),
@@ -70,6 +77,7 @@ pub fn make_native_menu_item(
         key: "h",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::HideOthers => make_menu_item(
       title.unwrap_or("Hide Others"),
@@ -78,11 +86,13 @@ pub fn make_native_menu_item(
         key: "h",
         masks: Some(NSEventModifierFlags::NSAlternateKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::ShowAll => make_menu_item(
       title.unwrap_or("Show All"),
       Some(selector("unhideAllApplications:")),
       None,
+      menu_type,
     ),
     NativeMenuItem::EnterFullScreen => make_menu_item(
       title.unwrap_or("Enter Full Screen"),
@@ -91,6 +101,7 @@ pub fn make_native_menu_item(
         key: "f",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::Minimize => make_menu_item(
       title.unwrap_or("Minimize"),
@@ -99,11 +110,13 @@ pub fn make_native_menu_item(
         key: "m",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::Zoom => make_menu_item(
       title.unwrap_or("Zoom"),
       Some(selector("performZoom:")),
       None,
+      menu_type,
     ),
     NativeMenuItem::Copy => make_menu_item(
       title.unwrap_or("Copy"),
@@ -112,6 +125,7 @@ pub fn make_native_menu_item(
         key: "c",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::Cut => make_menu_item(
       title.unwrap_or("Cut"),
@@ -120,6 +134,7 @@ pub fn make_native_menu_item(
         key: "x",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::Paste => make_menu_item(
       title.unwrap_or("Paste"),
@@ -128,6 +143,7 @@ pub fn make_native_menu_item(
         key: "v",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::Undo => make_menu_item(
       title.unwrap_or("Undo"),
@@ -136,6 +152,7 @@ pub fn make_native_menu_item(
         key: "z",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::Redo => make_menu_item(
       title.unwrap_or("Redo"),
@@ -144,6 +161,7 @@ pub fn make_native_menu_item(
         key: "z",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask | NSEventModifierFlags::NSShiftKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::SelectAll => make_menu_item(
       title.unwrap_or("Select All"),
@@ -152,9 +170,10 @@ pub fn make_native_menu_item(
         key: "a",
         masks: Some(NSEventModifierFlags::NSCommandKeyMask),
       })),
+      menu_type,
     ),
     NativeMenuItem::Services => unsafe {
-      let (_, item) = make_menu_item("Services", None, key_equivalent);
+      let (_, item) = make_menu_item("Services", None, key_equivalent, menu_type);
       let app_class = class!(NSApplication);
       let app: id = msg_send![app_class, sharedApplication];
       let services: id = msg_send![app, servicesMenu];
