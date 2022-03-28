@@ -1,10 +1,10 @@
-use crate::menu_item::MenuItem;
+use crate::{key, menu_item::MenuItem, native_menu_item::NativeMenuItem};
 use cocoa::{
   appkit::{NSApp, NSApplication, NSMenu},
   base::{id, nil, NO},
   foundation::{NSAutoreleasePool, NSString},
 };
-use objc::{msg_send, sel, sel_impl};
+use objc::{msg_send, runtime::Sel, sel, sel_impl};
 use std::{
   collections::hash_map::DefaultHasher,
   hash::{Hash, Hasher},
@@ -30,9 +30,26 @@ impl Menu {
       Self { ns_menu }
     }
   }
-  pub fn add_item(&self, menu_item: &MenuItem) {
+  pub fn add_item(
+    &self,
+    title: &str,
+    selector: Option<Sel>,
+    key_equivalent: Option<key::KeyEquivalent>,
+  ) {
+    let menu_item = MenuItem::new(title, selector, key_equivalent);
     unsafe {
       self.ns_menu.addItem_(menu_item.ns_menu_item);
+    }
+  }
+  pub fn add_native_item(
+    &self,
+    item: NativeMenuItem,
+    title: Option<&str>,
+    key_equivalent: Option<key::KeyEquivalent>,
+  ) {
+    let native_menu_item = MenuItem::new_native(item, title, key_equivalent);
+    unsafe {
+      self.ns_menu.addItem_(native_menu_item.ns_menu_item);
     }
   }
   pub fn add_submenu(&self, submenu: &Menu, title: &str) {
@@ -41,7 +58,9 @@ impl Menu {
     let menu_item = MenuItem::new(title, None, None);
     menu_item.add_submenu(&submenu);
 
-    self.add_item(&menu_item);
+    unsafe {
+      self.ns_menu.addItem_(menu_item.ns_menu_item);
+    }
   }
   pub fn set_title(&self, title: &str) {
     unsafe {

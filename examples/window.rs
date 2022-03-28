@@ -55,34 +55,19 @@ fn menu_bartender() -> Menu {
 
   /* application menu */
   let app_menu: Menu = Menu::new();
-
-  let app_menu_item_1: MenuItem = MenuItem::new("AppMenu Item 1", None, None);
-  let app_menu_item_2: MenuItem = MenuItem::new("AppMenu Item 2", None, None);
-  let app_menu_item_3: MenuItem = MenuItem::new("AppMenu Item 3", None, None);
-
-  /* native menu items */
-  let about_menu_item =
-    MenuItem::new_native(NativeMenuItem::About("AppName".to_string()), None, None);
-  let hide_others_menu_item: MenuItem =
-    MenuItem::new_native(NativeMenuItem::HideOthers, None, None);
-  let sep: MenuItem = MenuItem::new_native(NativeMenuItem::Separator, None, None);
-  let close_menu_item: MenuItem =
-    MenuItem::new_native(NativeMenuItem::CloseWindow, Some("Bye"), None);
-
-  app_menu.add_item(&about_menu_item);
-  app_menu.add_item(&app_menu_item_1);
-  app_menu.add_item(&app_menu_item_2);
-  app_menu.add_item(&app_menu_item_3);
-  app_menu.add_item(&hide_others_menu_item);
-  app_menu.add_item(&sep);
-  app_menu.add_item(&close_menu_item);
+  app_menu.add_native_item(NativeMenuItem::About("AppName".to_string()), None, None);
+  app_menu.add_item("AppMenu Item 1", None, None);
+  app_menu.add_item("AppMenu Item 2", None, None);
+  app_menu.add_item("AppMenu Item 3", None, None);
+  app_menu.add_native_item(NativeMenuItem::HideOthers, None, None);
+  app_menu.add_native_item(NativeMenuItem::Separator, None, None);
+  app_menu.add_native_item(NativeMenuItem::CloseWindow, Some("Bye"), None);
 
   menu_bar.add_submenu(&app_menu, "Application");
 
   /* first menu */
   let first_menu: Menu = Menu::new();
-
-  let first_menu_item_a = MenuItem::new(
+  first_menu.add_item(
     "Menu Item A",
     None,
     Some(KeyEquivalent {
@@ -92,14 +77,9 @@ fn menu_bartender() -> Menu {
       ),
     }),
   );
-  let first_menu_item_b = MenuItem::new("Menu Item B", None, None);
-  let first_menu_item_c = MenuItem::new("Menu Item C", None, None);
-  let first_menu_item_d = MenuItem::new("Menu Item D", None, None);
-
-  first_menu.add_item(&first_menu_item_a);
-  first_menu.add_item(&first_menu_item_b);
-  first_menu.add_item(&first_menu_item_c);
-  first_menu.add_item(&first_menu_item_d);
+  first_menu.add_item("Menu Item B", None, None);
+  first_menu.add_item("Menu Item C", None, None);
+  first_menu.add_item("Menu Item D", None, None);
 
   menu_bar.add_submenu(&first_menu, "First Menu");
 

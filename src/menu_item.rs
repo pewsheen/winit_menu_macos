@@ -22,6 +22,12 @@ use std::sync::Once;
 static MENU_IDENTITY: &str = "MenuItemIdentity";
 
 #[derive(Debug, Clone)]
+pub enum MenuType {
+  MenuBar,
+  ContextMenu,
+}
+
+#[derive(Debug, Clone)]
 pub struct MenuItem {
   pub ns_menu_item: id,
 }
