@@ -1,7 +1,5 @@
-use crate::{
-  key,
-  menu_item::{MenuItem, MenuType},
-  native_menu_item::NativeMenuItem,
+use crate::platform_impl::{
+  key, menu::MenuType, menu_item::MenuItem, native_menu_item::NativeMenuItem,
 };
 use cocoa::{
   appkit::{NSApp, NSApplication, NSMenu, NSMenuItem},
@@ -9,10 +7,6 @@ use cocoa::{
   foundation::{NSAutoreleasePool, NSString},
 };
 use objc::{msg_send, runtime::Sel, sel, sel_impl};
-use std::{
-  collections::hash_map::DefaultHasher,
-  hash::{Hash, Hasher},
-};
 
 pub fn set_menu(menu: &Menu) {
   unsafe {
@@ -21,6 +15,7 @@ pub fn set_menu(menu: &Menu) {
   }
 }
 
+// Menu Bar
 #[derive(Debug, Clone)]
 pub struct Menu {
   pub ns_menu: id,
@@ -74,36 +69,68 @@ impl Menu {
   }
 }
 
-/// Identifier of a custom menu item.
-///
-/// Whenever you receive an event arising from a particular menu, this event contains a `MenuId` which
-/// identifies its origin.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct MenuId(pub u16);
-
-impl From<MenuId> for u16 {
-  fn from(s: MenuId) -> u16 {
-    s.0
+impl Default for Menu {
+  fn default() -> Self {
+    Self::new()
   }
 }
 
-impl MenuId {
-  /// Return an empty `MenuId`.
-  pub const EMPTY: MenuId = MenuId(0);
+// Context Menu
+#[derive(Debug, Clone)]
+pub struct ContextMenu {
+  pub ns_menu: id,
+}
 
-  /// Create new `MenuId` from a String.
-  pub fn new(unique_string: &str) -> MenuId {
-    MenuId(hash_string_to_u16(unique_string))
+impl ContextMenu {
+  pub fn new() -> Self {
+    unsafe {
+      let ns_menu = NSMenu::alloc(nil).autorelease();
+      let () = msg_send![ns_menu, setAutoenablesItems: NO];
+      Self { ns_menu }
+    }
   }
+  pub fn add_item(
+    &self,
+    title: &str,
+    selector: Option<Sel>,
+    key_equivalent: Option<key::KeyEquivalent>,
+  ) {
+    let menu_item = MenuItem::new(title, selector, key_equivalent, MenuType::ContextMenu);
+    unsafe {
+      self.ns_menu.addItem_(menu_item.ns_menu_item);
+    }
+  }
+  pub fn add_native_item(
+    &self,
+    item: NativeMenuItem,
+    title: Option<&str>,
+    key_equivalent: Option<key::KeyEquivalent>,
+  ) {
+    let native_menu_item = MenuItem::new_native(item, title, key_equivalent, MenuType::ContextMenu);
+    unsafe {
+      self.ns_menu.addItem_(native_menu_item.ns_menu_item);
+    }
+  }
+  pub fn add_submenu(&self, submenu: &ContextMenu, title: &str) {
+    submenu.set_title(title);
 
-  /// Whenever this menu is empty.
-  pub fn is_empty(self) -> bool {
-    Self::EMPTY == self
+    let menu_item = MenuItem::new(title, None, None, MenuType::ContextMenu);
+
+    unsafe {
+      menu_item.ns_menu_item.setSubmenu_(submenu.ns_menu);
+      self.ns_menu.addItem_(menu_item.ns_menu_item);
+    }
+  }
+  pub fn set_title(&self, title: &str) {
+    unsafe {
+      let menu_title = NSString::alloc(nil).init_str(title);
+      let () = msg_send![self.ns_menu, setTitle: menu_title];
+    }
   }
 }
 
-fn hash_string_to_u16(title: &str) -> u16 {
-  let mut s = DefaultHasher::new();
-  title.to_uppercase().hash(&mut s);
-  s.finish() as u16
+impl Default for ContextMenu {
+  fn default() -> Self {
+    Self::new()
+  }
 }

@@ -1,7 +1,4 @@
-use crate::{
-  key,
-  menu_item::{make_menu_item, MenuType},
-};
+use crate::platform_impl::{key, menu::MenuType, menu_item::make_menu_item};
 use cocoa::{
   appkit::{NSEventModifierFlags, NSMenuItem},
   base::{id, nil, selector},

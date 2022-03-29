@@ -4,12 +4,10 @@ use winit::{
   event_loop::{ControlFlow, EventLoop},
   window::WindowBuilder,
 };
-
 use winit_menu_macos::{
   event_channel::get_event_channel,
-  key::KeyEquivalent,
   menu::{set_menu, Menu},
-  native_menu_item::NativeMenuItem,
+  platform_impl::{key::KeyEquivalent, native_menu_item::NativeMenuItem},
 };
 
 fn main() {
@@ -54,7 +52,16 @@ fn menu_bartender() -> Menu {
 
   /* application menu */
   let app_menu: Menu = Menu::new();
-  app_menu.add_native_item(NativeMenuItem::About("AppName".to_string()), None, None);
+
+  // (ctrl + cmd + a) to open about window
+  app_menu.add_native_item(
+    NativeMenuItem::About("AppName".to_string()),
+    None,
+    Some(KeyEquivalent {
+      key: "a",
+      masks: Some(NSEventModifierFlags::NSControlKeyMask | NSEventModifierFlags::NSCommandKeyMask),
+    }),
+  );
   app_menu.add_item("AppMenu Item 1", None, None);
   app_menu.add_item("AppMenu Item 2", None, None);
   app_menu.add_item("AppMenu Item 3", None, None);

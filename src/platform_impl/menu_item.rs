@@ -1,9 +1,11 @@
 use crate::{
   event::Event,
   event_channel::get_event_channel,
-  key,
-  menu::MenuId,
-  native_menu_item::{make_native_menu_item, NativeMenuItem},
+  platform_impl::{
+    key,
+    menu::{get_window_id, MenuId, MenuType},
+    native_menu_item::{make_native_menu_item, NativeMenuItem},
+  },
 };
 use cocoa::{
   appkit::{NSEventModifierFlags, NSMenuItem},
@@ -20,12 +22,6 @@ use objc::{
 use std::sync::Once;
 
 static MENU_IDENTITY: &str = "MenuItemIdentity";
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum MenuType {
-  MenuBar,
-  ContextMenu,
-}
 
 #[derive(Debug, Clone)]
 pub struct MenuItem {
@@ -185,19 +181,4 @@ fn send_event(this: &Object, menu_type: MenuType) {
   };
 
   tx.send(event).unwrap();
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Id(pub usize);
-
-impl Id {
-  pub const unsafe fn dummy() -> Self {
-    Id(0)
-  }
-}
-
-// Convert the `cocoa::base::id` associated with a window to a usize to use as a unique identifier
-// for the window.
-fn get_window_id(window_cocoa_id: id) -> Id {
-  Id(window_cocoa_id as *const Object as _)
 }

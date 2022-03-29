@@ -1,8 +1,4 @@
-// use cocoa::base::id;
-use crate::{
-  menu::MenuId,
-  menu_item::{Id, MenuType},
-};
+use crate::platform_impl::menu::{Id, MenuId, MenuType};
 
 #[non_exhaustive]
 #[derive(Debug, PartialEq)]
