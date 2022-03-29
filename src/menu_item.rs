@@ -2,7 +2,7 @@ use crate::{
   event::Event,
   event_channel::get_event_channel,
   key,
-  menu::{HasMenu, MenuId},
+  menu::MenuId,
   native_menu_item::{make_native_menu_item, NativeMenuItem},
 };
 use cocoa::{
@@ -56,11 +56,6 @@ impl MenuItem {
   ) -> Self {
     Self {
       ns_menu_item: make_native_menu_item(item, title, key_equivalent, menu_type),
-    }
-  }
-  pub fn add_submenu(&self, submenu: &dyn HasMenu) {
-    unsafe {
-      self.ns_menu_item.setSubmenu_(submenu.ns_menu());
     }
   }
 }

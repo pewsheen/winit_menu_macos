@@ -4,7 +4,7 @@ use crate::{
   native_menu_item::NativeMenuItem,
 };
 use cocoa::{
-  appkit::{NSApp, NSApplication, NSMenu},
+  appkit::{NSApp, NSApplication, NSMenu, NSMenuItem},
   base::{id, nil, NO},
   foundation::{NSAutoreleasePool, NSString},
 };
@@ -13,10 +13,6 @@ use std::{
   collections::hash_map::DefaultHasher,
   hash::{Hash, Hasher},
 };
-
-pub trait HasMenu {
-  fn ns_menu(&self) -> id;
-}
 
 pub fn set_menu(menu: &Menu) {
   unsafe {
@@ -28,12 +24,6 @@ pub fn set_menu(menu: &Menu) {
 #[derive(Debug, Clone)]
 pub struct Menu {
   pub ns_menu: id,
-}
-
-impl HasMenu for Menu {
-  fn ns_menu(&self) -> id {
-    self.ns_menu
-  }
 }
 
 impl Menu {
@@ -70,9 +60,9 @@ impl Menu {
     submenu.set_title(title);
 
     let menu_item = MenuItem::new(title, None, None, MenuType::MenuBar);
-    menu_item.add_submenu(submenu);
 
     unsafe {
+      menu_item.ns_menu_item.setSubmenu_(submenu.ns_menu);
       self.ns_menu.addItem_(menu_item.ns_menu_item);
     }
   }

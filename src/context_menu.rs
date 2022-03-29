@@ -1,11 +1,10 @@
 use crate::{
   key,
-  menu::HasMenu,
   menu_item::{MenuItem, MenuType},
   native_menu_item::NativeMenuItem,
 };
 use cocoa::{
-  appkit::NSMenu,
+  appkit::{NSMenu, NSMenuItem},
   base::{id, nil, NO},
   foundation::{NSAutoreleasePool, NSString},
 };
@@ -14,12 +13,6 @@ use objc::{msg_send, runtime::Sel, sel, sel_impl};
 #[derive(Debug, Clone)]
 pub struct ContextMenu {
   pub ns_menu: id,
-}
-
-impl HasMenu for ContextMenu {
-  fn ns_menu(&self) -> id {
-    self.ns_menu
-  }
 }
 
 impl ContextMenu {
@@ -56,9 +49,9 @@ impl ContextMenu {
     submenu.set_title(title);
 
     let menu_item = MenuItem::new(title, None, None, MenuType::ContextMenu);
-    menu_item.add_submenu(submenu);
 
     unsafe {
+      menu_item.ns_menu_item.setSubmenu_(submenu.ns_menu);
       self.ns_menu.addItem_(menu_item.ns_menu_item);
     }
   }
