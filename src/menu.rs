@@ -15,7 +15,7 @@ pub fn set_menu(menu: &Menu) {
   }
 }
 
-// Menu Bar
+/// Menu Bar
 #[derive(Debug, Clone)]
 pub struct Menu {
   pub ns_menu: id,
@@ -29,6 +29,7 @@ impl Menu {
       Self { ns_menu }
     }
   }
+  /// Add a menu item to the menu
   pub fn add_item(
     &self,
     title: &str,
@@ -40,6 +41,10 @@ impl Menu {
       self.ns_menu.addItem_(menu_item.ns_menu_item);
     }
   }
+  /// Add predefined menu item to the menu. Such as about, hide, quit, etc.
+  /// title and key_equivalent are optional, leave None to use default configuration.
+  ///
+  /// Note that default title is only available in English.
   pub fn add_native_item(
     &self,
     item: NativeMenuItem,
