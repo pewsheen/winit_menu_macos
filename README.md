@@ -14,4 +14,4 @@ See [examples](https://github.com/pewsheen/winit_menu_macos/tree/main/examples) 
 
 ## Todo:
 * [ ] selected, enabled for menu item
-* [ ] context menu example (may ne used in system tray)
+* [ ] context menu example (may be used in system tray)
