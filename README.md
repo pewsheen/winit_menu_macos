@@ -1,6 +1,6 @@
 # winit_menu_macos
 
-**MacOS** menu module for [winit](https://github.com/rust-windowing/winit)
+**macOS** menu module for [winit](https://github.com/rust-windowing/winit)
 
 ---
 
@@ -12,4 +12,6 @@ Due to there is no simple way to inject WindowEvent in winit, we use mpsc to sen
 
 See [examples](https://github.com/pewsheen/winit_menu_macos/tree/main/examples) to learn how to set up menu and menu item.
 
-
+## Todo:
+* [ ] selected, enabled for menu item
+* [ ] context menu example (may ne used in system tray)
