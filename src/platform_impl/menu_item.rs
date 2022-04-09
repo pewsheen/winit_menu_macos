@@ -8,8 +8,8 @@ use crate::{
   },
 };
 use cocoa::{
-  appkit::{NSEventModifierFlags, NSMenuItem},
-  base::{id, nil},
+  appkit::{NSButton, NSEventModifierFlags, NSMenuItem},
+  base::{id, nil, NO, YES},
   foundation::NSString,
 };
 use objc::{
@@ -26,22 +26,36 @@ static MENU_IDENTITY: &str = "MenuItemIdentity";
 #[derive(Debug, Clone)]
 pub struct MenuItem {
   pub ns_menu_item: id,
+  menu_item_id: Option<MenuId>,
 }
 
 impl MenuItem {
+  pub fn id(&self) -> MenuId {
+    self.menu_item_id.unwrap_or(MenuId::EMPTY)
+  }
   pub fn new(
     title: &str,
     selector: Option<Sel>,
     key_equivalent: Option<key::KeyEquivalent>,
+    enabled: bool,
+    selected: bool,
     menu_type: MenuType,
   ) -> Self {
-    let (menu_id, menu_item) = make_menu_item(title, selector, key_equivalent, menu_type);
+    let (menu_item_id, menu_item) = make_menu_item(title, selector, key_equivalent, menu_type);
     unsafe {
-      (&mut *menu_item).set_ivar(MENU_IDENTITY, menu_id.unwrap().0);
+      (&mut *menu_item).set_ivar(MENU_IDENTITY, menu_item_id.unwrap().0);
       let _: () = msg_send![&*menu_item, setTarget:&*menu_item];
+
+      if selected {
+        let () = msg_send![menu_item, setState: 1_isize];
+      }
+      if !enabled {
+        let () = msg_send![menu_item, setEnabled: NO];
+      }
     }
     Self {
       ns_menu_item: menu_item,
+      menu_item_id,
     }
   }
   pub fn new_native(
@@ -52,6 +66,31 @@ impl MenuItem {
   ) -> Self {
     Self {
       ns_menu_item: make_native_menu_item(item, title, key_equivalent, menu_type),
+      menu_item_id: None,
+    }
+  }
+  pub fn set_enabled(&mut self, is_enabled: bool) {
+    unsafe {
+      let status = match is_enabled {
+        true => YES,
+        false => NO,
+      };
+      let () = msg_send![self.ns_menu_item, setEnabled: status];
+    }
+  }
+  pub fn set_title(&mut self, title: &str) {
+    unsafe {
+      let menu_title = NSString::alloc(nil).init_str(title);
+      self.ns_menu_item.setTitle_(menu_title);
+    }
+  }
+  pub fn set_selected(&mut self, is_selected: bool) {
+    unsafe {
+      let state = match is_selected {
+        true => 1_isize,
+        false => 0_isize,
+      };
+      let () = msg_send![self.ns_menu_item, setState: state];
     }
   }
 }

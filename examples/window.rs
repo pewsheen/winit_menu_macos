@@ -5,9 +5,10 @@ use winit::{
   window::WindowBuilder,
 };
 use winit_menu_macos::{
+  event::Event::MenuEvent,
   event_channel::get_event_channel,
   menu::{set_menu, Menu},
-  platform_impl::{key::KeyEquivalent, native_menu_item::NativeMenuItem},
+  platform_impl::{key::KeyEquivalent, menu::MenuId, native_menu_item::NativeMenuItem},
 };
 
 fn main() {
@@ -19,34 +20,6 @@ fn main() {
     .build(&event_loop)
     .unwrap();
 
-  let menu_bar = menu_bartender();
-
-  event_loop.run(move |event, _, control_flow| {
-    *control_flow = ControlFlow::Wait;
-
-    let channel = get_event_channel();
-    let rx_ref = channel.1.clone();
-
-    /* recv menu events */
-    while let Ok(data) = rx_ref.try_recv() {
-      println!("{:?}", data);
-    }
-
-    match event {
-      Event::NewEvents(winit::event::StartCause::Init) => set_menu(&menu_bar),
-      Event::WindowEvent {
-        event: WindowEvent::CloseRequested,
-        window_id,
-      } if window_id == window.id() => *control_flow = ControlFlow::Exit,
-      Event::MainEventsCleared => {
-        window.request_redraw();
-      }
-      _ => (),
-    }
-  });
-}
-
-fn menu_bartender() -> Menu {
   /* menu bar */
   let menu_bar: Menu = Menu::new();
 
@@ -62,9 +35,9 @@ fn menu_bartender() -> Menu {
       masks: Some(NSEventModifierFlags::NSControlKeyMask | NSEventModifierFlags::NSCommandKeyMask),
     }),
   );
-  app_menu.add_item("AppMenu Item 1", None, None);
-  app_menu.add_item("AppMenu Item 2", None, None);
-  app_menu.add_item("AppMenu Item 3", None, None);
+  app_menu.add_item("AppMenu Item 1", None, None, None, None);
+  app_menu.add_item("AppMenu Item 2", None, None, None, None);
+  app_menu.add_item("AppMenu Item 3", None, None, None, None);
   app_menu.add_native_item(NativeMenuItem::HideOthers, None, None);
   app_menu.add_native_item(NativeMenuItem::Separator, None, None);
   app_menu.add_native_item(NativeMenuItem::CloseWindow, Some("Bye"), None);
@@ -73,8 +46,8 @@ fn menu_bartender() -> Menu {
 
   /* first menu */
   let first_menu: Menu = Menu::new();
-  first_menu.add_item(
-    "Menu Item A",
+  let mut enable_test_item = first_menu.add_item(
+    "Click to disable this item",
     None,
     Some(KeyEquivalent {
       key: "h",
@@ -82,12 +55,47 @@ fn menu_bartender() -> Menu {
         NSEventModifierFlags::NSAlternateKeyMask | NSEventModifierFlags::NSCommandKeyMask,
       ),
     }),
+    None,
+    None,
   );
-  first_menu.add_item("Menu Item B", None, None);
-  first_menu.add_item("Menu Item C", None, None);
-  first_menu.add_item("Menu Item D", None, None);
+  first_menu.add_item("Menu Item B", None, None, None, None);
+  first_menu.add_item("Menu Item C", None, None, Some(false), Some(true));
+  first_menu.add_item("Menu Item D", None, None, Some(false), Some(false));
 
   menu_bar.add_submenu(&first_menu, "First Menu");
 
-  menu_bar
+  event_loop.run(move |event, _, control_flow| {
+    *control_flow = ControlFlow::Wait;
+
+    let channel = get_event_channel();
+    let rx_ref = channel.1.clone();
+
+    /* recv menu events */
+    while let Ok(event) = rx_ref.try_recv() {
+      println!("{:?}", event);
+
+      match event {
+        MenuEvent { menu_id, .. } => {
+          if menu_id == MenuId::EMPTY {
+            println!("EMPTY menu id");
+          } else if menu_id == enable_test_item.id() {
+            enable_test_item.set_enabled(false);
+          }
+        }
+        _ => (),
+      }
+    }
+
+    match event {
+      Event::NewEvents(winit::event::StartCause::Init) => set_menu(&menu_bar),
+      Event::WindowEvent {
+        event: WindowEvent::CloseRequested,
+        window_id,
+      } if window_id == window.id() => *control_flow = ControlFlow::Exit,
+      Event::MainEventsCleared => {
+        window.request_redraw();
+      }
+      _ => (),
+    }
+  });
 }

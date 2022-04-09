@@ -35,11 +35,21 @@ impl Menu {
     title: &str,
     selector: Option<Sel>,
     key_equivalent: Option<key::KeyEquivalent>,
-  ) {
-    let menu_item = MenuItem::new(title, selector, key_equivalent, MenuType::MenuBar);
+    enabled: Option<bool>,
+    selected: Option<bool>,
+  ) -> MenuItem {
+    let menu_item = MenuItem::new(
+      title,
+      selector,
+      key_equivalent,
+      enabled.unwrap_or(true),
+      selected.unwrap_or(false),
+      MenuType::MenuBar,
+    );
     unsafe {
       self.ns_menu.addItem_(menu_item.ns_menu_item);
     }
+    menu_item
   }
   /// Add predefined menu item to the menu. Such as about, hide, quit, etc.
   /// title and key_equivalent are optional, leave None to use default configuration.
@@ -50,21 +60,23 @@ impl Menu {
     item: NativeMenuItem,
     title: Option<&str>,
     key_equivalent: Option<key::KeyEquivalent>,
-  ) {
+  ) -> MenuItem {
     let native_menu_item = MenuItem::new_native(item, title, key_equivalent, MenuType::MenuBar);
     unsafe {
       self.ns_menu.addItem_(native_menu_item.ns_menu_item);
     }
+    native_menu_item
   }
-  pub fn add_submenu(&self, submenu: &Menu, title: &str) {
+  pub fn add_submenu(&self, submenu: &Menu, title: &str) -> MenuItem {
     submenu.set_title(title);
 
-    let menu_item = MenuItem::new(title, None, None, MenuType::MenuBar);
+    let menu_item = MenuItem::new(title, None, None, true, false, MenuType::MenuBar);
 
     unsafe {
       menu_item.ns_menu_item.setSubmenu_(submenu.ns_menu);
       self.ns_menu.addItem_(menu_item.ns_menu_item);
     }
+    menu_item
   }
   pub fn set_title(&self, title: &str) {
     unsafe {
@@ -99,8 +111,17 @@ impl ContextMenu {
     title: &str,
     selector: Option<Sel>,
     key_equivalent: Option<key::KeyEquivalent>,
+    enabled: Option<bool>,
+    selected: Option<bool>,
   ) {
-    let menu_item = MenuItem::new(title, selector, key_equivalent, MenuType::ContextMenu);
+    let menu_item = MenuItem::new(
+      title,
+      selector,
+      key_equivalent,
+      enabled.unwrap_or(true),
+      selected.unwrap_or(false),
+      MenuType::ContextMenu,
+    );
     unsafe {
       self.ns_menu.addItem_(menu_item.ns_menu_item);
     }
@@ -119,7 +140,7 @@ impl ContextMenu {
   pub fn add_submenu(&self, submenu: &ContextMenu, title: &str) {
     submenu.set_title(title);
 
-    let menu_item = MenuItem::new(title, None, None, MenuType::ContextMenu);
+    let menu_item = MenuItem::new(title, None, None, true, false, MenuType::ContextMenu);
 
     unsafe {
       menu_item.ns_menu_item.setSubmenu_(submenu.ns_menu);
