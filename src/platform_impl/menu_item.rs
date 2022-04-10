@@ -69,7 +69,7 @@ impl MenuItem {
       menu_item_id: None,
     }
   }
-  pub fn set_enabled(&mut self, is_enabled: bool) -> &Self {
+  pub fn set_enabled(&self, is_enabled: bool) -> &Self {
     unsafe {
       let status = match is_enabled {
         true => YES,
@@ -79,14 +79,14 @@ impl MenuItem {
     }
     self
   }
-  pub fn set_title(&mut self, title: &str) -> &Self {
+  pub fn set_title(&self, title: &str) -> &Self {
     unsafe {
       let menu_title = NSString::alloc(nil).init_str(title);
       self.ns_menu_item.setTitle_(menu_title);
     }
     self
   }
-  pub fn set_selected(&mut self, is_selected: bool) -> &Self {
+  pub fn set_selected(&self, is_selected: bool) -> &Self {
     unsafe {
       let state = match is_selected {
         true => 1_isize,

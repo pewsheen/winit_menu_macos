@@ -57,7 +57,7 @@ fn main() {
 
   // Save the item id for later use
   // We will make this item disabled after click event triggered
-  let mut enable_test_item = first_menu.add_item(
+  let enable_test_item = first_menu.add_item(
     MenuItemAttributes::new("Click to disable this item").with_key_equivalent(KeyEquivalent {
       key: "h",
       masks: Some(
