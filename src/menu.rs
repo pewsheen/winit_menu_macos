@@ -1,12 +1,13 @@
 use crate::platform_impl::{
-  key, menu::MenuType, menu_item::MenuItem, native_menu_item::NativeMenuItem,
+  key, menu::MenuType, menu_item::MenuItem, menu_item_attributes::MenuItemAttributes,
+  native_menu_item_type::NativeMenuItemType,
 };
 use cocoa::{
   appkit::{NSApp, NSApplication, NSMenu, NSMenuItem},
   base::{id, nil, NO},
   foundation::{NSAutoreleasePool, NSString},
 };
-use objc::{msg_send, runtime::Sel, sel, sel_impl};
+use objc::{msg_send, sel, sel_impl};
 
 pub fn set_menu(menu: &Menu) {
   unsafe {
@@ -29,21 +30,14 @@ impl Menu {
       Self { ns_menu }
     }
   }
-  /// Add a menu item to the menu
-  pub fn add_item(
-    &self,
-    title: &str,
-    selector: Option<Sel>,
-    key_equivalent: Option<key::KeyEquivalent>,
-    enabled: Option<bool>,
-    selected: Option<bool>,
-  ) -> MenuItem {
+  /// Add a custom menu item to the menu
+  pub fn add_item(&self, attributes: MenuItemAttributes) -> MenuItem {
     let menu_item = MenuItem::new(
-      title,
-      selector,
-      key_equivalent,
-      enabled.unwrap_or(true),
-      selected.unwrap_or(false),
+      attributes.title,
+      attributes.selector,
+      attributes.key_equivalent,
+      attributes.enabled,
+      attributes.selected,
       MenuType::MenuBar,
     );
     unsafe {
@@ -57,7 +51,7 @@ impl Menu {
   /// Note that default title is only available in English.
   pub fn add_native_item(
     &self,
-    item: NativeMenuItem,
+    item: NativeMenuItemType,
     title: Option<&str>,
     key_equivalent: Option<key::KeyEquivalent>,
   ) -> MenuItem {
@@ -106,20 +100,13 @@ impl ContextMenu {
       Self { ns_menu }
     }
   }
-  pub fn add_item(
-    &self,
-    title: &str,
-    selector: Option<Sel>,
-    key_equivalent: Option<key::KeyEquivalent>,
-    enabled: Option<bool>,
-    selected: Option<bool>,
-  ) {
+  pub fn add_item(&self, attributes: MenuItemAttributes) {
     let menu_item = MenuItem::new(
-      title,
-      selector,
-      key_equivalent,
-      enabled.unwrap_or(true),
-      selected.unwrap_or(false),
+      attributes.title,
+      attributes.selector,
+      attributes.key_equivalent,
+      attributes.enabled,
+      attributes.selected,
       MenuType::ContextMenu,
     );
     unsafe {
@@ -128,7 +115,7 @@ impl ContextMenu {
   }
   pub fn add_native_item(
     &self,
-    item: NativeMenuItem,
+    item: NativeMenuItemType,
     title: Option<&str>,
     key_equivalent: Option<key::KeyEquivalent>,
   ) {

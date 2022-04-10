@@ -4,7 +4,7 @@ use crate::{
   platform_impl::{
     key,
     menu::{get_window_id, MenuId, MenuType},
-    native_menu_item::{make_native_menu_item, NativeMenuItem},
+    native_menu_item_type::{make_native_menu_item, NativeMenuItemType},
   },
 };
 use cocoa::{
@@ -59,7 +59,7 @@ impl MenuItem {
     }
   }
   pub fn new_native(
-    item: NativeMenuItem,
+    item: NativeMenuItemType,
     title: Option<&str>,
     key_equivalent: Option<key::KeyEquivalent>,
     menu_type: MenuType,
@@ -69,7 +69,7 @@ impl MenuItem {
       menu_item_id: None,
     }
   }
-  pub fn set_enabled(&mut self, is_enabled: bool) {
+  pub fn set_enabled(&mut self, is_enabled: bool) -> &Self {
     unsafe {
       let status = match is_enabled {
         true => YES,
@@ -77,14 +77,16 @@ impl MenuItem {
       };
       let () = msg_send![self.ns_menu_item, setEnabled: status];
     }
+    self
   }
-  pub fn set_title(&mut self, title: &str) {
+  pub fn set_title(&mut self, title: &str) -> &Self {
     unsafe {
       let menu_title = NSString::alloc(nil).init_str(title);
       self.ns_menu_item.setTitle_(menu_title);
     }
+    self
   }
-  pub fn set_selected(&mut self, is_selected: bool) {
+  pub fn set_selected(&mut self, is_selected: bool) -> &Self {
     unsafe {
       let state = match is_selected {
         true => 1_isize,
@@ -92,6 +94,7 @@ impl MenuItem {
       };
       let () = msg_send![self.ns_menu_item, setState: state];
     }
+    self
   }
 }
 
